@@ -1,0 +1,25 @@
+{% extends "base.html" %}{% block title %}Complaints{% endblock %}
+{% block body %}
+{% from "_macros.html" import csrf, badge %}
+<h1>Complaints</h1>
+<nav class="tabs" aria-label="Filter">
+  {% for key, label in (('', 'All'), ('open', 'Open'), ('in_progress', 'In progress'), ('resolved', 'Resolved')) %}
+  <a href="{{ url_for('complaints', status=key or None) }}" {% if status == key %}aria-current="true"{% endif %}>{{ label }}</a>
+  {% endfor %}
+</nav>
+{% for c in rows %}
+<article class="complaint">
+  <header><strong>{{ c.category }}</strong> {{ badge(c.status) }}
+    <span class="muted">{{ c.resident_name }}, room {{ c.room_number or '-' }}, raised {{ c.created_on|dmy }}{% if c.resolved_on %}, resolved {{ c.resolved_on|dmy }}{% endif %}</span></header>
+  <p>{{ c.description }}</p>
+  <form method="post" action="{{ url_for('complaint_update', cid=c.id) }}" class="inline-form">
+    {{ csrf() }}<input type="hidden" name="filter" value="{{ status }}">
+    <select name="status" aria-label="Status">
+      {% for s in rules.COMPLAINT_STATUSES %}<option value="{{ s }}" {{ 'selected' if c.status == s }}>{{ s|replace('_', ' ') }}</option>{% endfor %}
+    </select>
+    <input name="remark" value="{{ c.remark or '' }}" placeholder="Remark for the resident" maxlength="500" aria-label="Remark">
+    <button class="btn small">Save</button>
+  </form>
+</article>
+{% else %}<p class="empty">No complaints here.</p>{% endfor %}
+{% endblock %}

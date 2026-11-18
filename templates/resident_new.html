@@ -1,0 +1,28 @@
+{% extends "base.html" %}{% block title %}Admit resident{% endblock %}
+{% block body %}
+{% from "_macros.html" import csrf %}
+<h1>Admit resident</h1>
+<p class="muted">A resident login is created automatically and its password is shown once after saving.</p>
+<form method="post" class="grid-form">
+  {{ csrf() }}
+  <label>Full name <input name="name" value="{{ form.name }}" required></label>
+  <label>Gender <select name="gender" required>
+    <option value="">Choose</option>
+    <option value="M" {{ 'selected' if form.gender == 'M' }}>Male</option>
+    <option value="F" {{ 'selected' if form.gender == 'F' }}>Female</option></select></label>
+  <label>Mobile number <input name="phone" value="{{ form.phone }}" inputmode="numeric" required></label>
+  <label>Email (also the login) <input type="email" name="email" value="{{ form.email }}" required></label>
+  <label>Course <input name="course" value="{{ form.course }}"></label>
+  <label>Joining date <input type="date" name="joined_on" value="{{ form.joined_on or today().isoformat() }}" required></label>
+  <label>Room <select name="room_id" required>
+    <option value="">Choose a room with a free bed</option>
+    {% for r in rooms %}<option value="{{ r.id }}" {{ 'selected' if form.room_id == r.id|string }}>
+      {{ r.number }}, {{ r.block }}, {{ r.capacity - r.occupied }} free, {{ r.rent|rupees }}{{ ', AC' if r.ac }}</option>{% endfor %}
+  </select></label>
+  <label>Security deposit (₹) <input type="number" name="deposit" min="0" value="{{ form.deposit or 0 }}"></label>
+  <label>Guardian name <input name="guardian_name" value="{{ form.guardian_name }}"></label>
+  <label>Guardian mobile <input name="guardian_phone" value="{{ form.guardian_phone }}" inputmode="numeric"></label>
+  <label class="wide">Home address <textarea name="address" rows="2">{{ form.address }}</textarea></label>
+  <button class="btn">Admit resident</button>
+</form>
+{% endblock %}

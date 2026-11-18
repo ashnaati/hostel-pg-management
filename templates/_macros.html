@@ -1,0 +1,20 @@
+{% macro csrf() %}<input type="hidden" name="csrf" value="{{ csrf_token() }}">{% endmacro %}
+
+{% macro badge(status) %}
+<span class="badge badge-{{ status }}">{{ status|replace('_', ' ') }}</span>
+{% endmacro %}
+
+{% macro owed(b) %}
+{% if b > 0 %}<span class="due">{{ b|rupees }}</span>{% else %}<span class="paid">Paid</span>{% endif %}
+{% endmacro %}
+
+{% macro pay_form(inv) %}
+<form method="post" action="{{ url_for('invoice_pay', iid=inv.id) }}" class="inline-form">
+  {{ csrf() }}
+  <input type="number" name="amount" min="1" max="{{ inv.balance }}" value="{{ inv.balance }}" aria-label="Amount" required>
+  <select name="mode" aria-label="Payment mode">
+    {% for m in rules.PAYMENT_MODES %}<option>{{ m }}</option>{% endfor %}
+  </select>
+  <button class="btn small">Record payment</button>
+</form>
+{% endmacro %}

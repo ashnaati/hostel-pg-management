@@ -1,0 +1,69 @@
+{% extends "base.html" %}{% block title %}{{ r.name }}{% endblock %}
+{% block body %}
+{% from "_macros.html" import csrf, owed, pay_form %}
+<div class="head"><h1>{{ r.name }}</h1>
+  <span class="badge badge-{{ r.status }}">{{ 'current' if r.status == 'active' else 'left' }}</span></div>
+<dl class="facts">
+  <div><dt>Room</dt><dd>{{ r.room_number or '-' }}{% if r.block %} ({{ r.block }}){% endif %}</dd></div>
+  <div><dt>Phone</dt><dd>{{ r.phone }}</dd></div>
+  <div><dt>Email</dt><dd>{{ r.email }}</dd></div>
+  <div><dt>Course</dt><dd>{{ r.course or '-' }}</dd></div>
+  <div><dt>Joined</dt><dd>{{ r.joined_on|dmy }}{% if r.left_on %}, left {{ r.left_on|dmy }}{% endif %}</dd></div>
+  <div><dt>Deposit</dt><dd>{{ r.deposit|rupees }}</dd></div>
+  <div><dt>Guardian</dt><dd>{{ r.guardian_name or '-' }} {{ r.guardian_phone or '' }}</dd></div>
+  <div><dt>Address</dt><dd>{{ r.address or '-' }}</dd></div>
+  {% if r.settlement_kind %}<div><dt>Deposit settlement</dt>
+    <dd>{{ 'Refunded' if r.settlement_kind == 'refund' else 'Collected' }} {{ r.settlement_amount|rupees }}</dd></div>{% endif %}
+</dl>
+
+<h2>Rent bills</h2>
+{% if invoices %}
+<div class="scroll"><table>
+  <thead><tr><th>Month</th><th>Room</th><th class="num">Rent</th><th class="num">Late fee</th><th class="num">Paid</th><th>Due on</th><th class="num">Balance</th><th></th></tr></thead>
+  {% for i in invoices %}
+  <tr><td>{{ i.month|month_label }}</td><td>{{ i.room_number }}</td><td class="num">{{ i.rent|rupees }}</td>
+      <td class="num">{{ i.late_fee|rupees if i.late_fee else '-' }}</td><td class="num">{{ i.paid|rupees }}</td>
+      <td>{{ i.due_on|dmy }}</td><td class="num">{{ owed(i.balance) }}</td>
+      <td>{% if i.balance > 0 and r.status == 'active' %}{{ pay_form(i) }}{% endif %}</td></tr>
+  {% endfor %}
+</table></div>
+{% else %}<p class="empty">No bills yet. Generate them from <a href="{{ url_for('bills') }}">Rent bills</a>.</p>{% endif %}
+
+<h2>Payments</h2>
+{% if payments %}
+<table>
+  <thead><tr><th>Receipt</th><th>For</th><th>Date</th><th>Mode</th><th class="num">Amount</th></tr></thead>
+  {% for p in payments %}
+  <tr><td><a href="{{ url_for('receipt', pid=p.id) }}">{{ p.receipt_no }}</a></td><td>{{ p.month|month_label }}</td>
+      <td>{{ p.paid_on|dmy }}</td><td>{{ p.mode }}</td><td class="num">{{ p.amount|rupees }}</td></tr>
+  {% endfor %}
+</table>
+{% else %}<p class="empty">No payments recorded.</p>{% endif %}
+
+{% if r.status == 'active' %}
+<div class="two">
+  <section>
+    <h2>Change room</h2>
+    {% if rooms %}
+    <form method="post" action="{{ url_for('resident_move', rid=r.id) }}" class="inline-form">
+      {{ csrf() }}
+      <select name="room_id" aria-label="New room">
+        {% for x in rooms %}<option value="{{ x.id }}">{{ x.number }}, {{ x.capacity - x.occupied }} free, {{ x.rent|rupees }}</option>{% endfor %}
+      </select>
+      <button class="btn small">Move</button>
+    </form>
+    <p class="muted">Existing bills keep their old room. Future bills use the new room's rent.</p>
+    {% else %}<p class="empty">No other room in the {{ r.block }} block has a free bed.</p>{% endif %}
+  </section>
+  <section>
+    <h2>Check out</h2>
+    <form method="post" action="{{ url_for('resident_checkout', rid=r.id) }}" class="stack">
+      {{ csrf() }}
+      <p class="muted">Bills the leaving month in full, frees the bed and settles the {{ r.deposit|rupees }} deposit against dues.</p>
+      <label class="check"><input type="checkbox" name="confirm" value="yes"> I confirm this resident is leaving today</label>
+      <button class="btn danger">Check out {{ r.name }}</button>
+    </form>
+  </section>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{% endblock %} · Hostel &amp; PG Manager</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+</head>
+<body>
+{% if g.user %}
+<div class="shell">
+  <nav class="side" aria-label="Main">
+    <a class="brand" href="{{ url_for('index') }}">Hostel &amp; PG<br>Manager</a>
+    {% if g.user.role == 'warden' %}
+      <a href="{{ url_for('dashboard') }}" {% if request.endpoint == 'dashboard' %}aria-current="page"{% endif %}>Dashboard</a>
+      <a href="{{ url_for('rooms') }}" {% if request.endpoint in ('rooms','room_new') %}aria-current="page"{% endif %}>Room map</a>
+      <a href="{{ url_for('residents') }}" {% if request.endpoint and request.endpoint.startswith('resident') %}aria-current="page"{% endif %}>Residents</a>
+      <a href="{{ url_for('bills') }}" {% if request.endpoint == 'bills' %}aria-current="page"{% endif %}>Rent bills</a>
+      <a href="{{ url_for('complaints') }}" {% if request.endpoint == 'complaints' %}aria-current="page"{% endif %}>Complaints</a>
+      <a href="{{ url_for('notices') }}" {% if request.endpoint == 'notices' %}aria-current="page"{% endif %}>Notices</a>
+    {% else %}
+      <a href="{{ url_for('portal') }}" aria-current="page">My room</a>
+    {% endif %}
+    <form method="post" action="{{ url_for('logout') }}" class="logout">
+      <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+      <span class="who">{{ g.user.email }}</span>
+      <button class="link">Log out</button>
+    </form>
+  </nav>
+  <main>
+{% else %}
+<main class="solo">
+{% endif %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in messages %}<p class="flash flash-{{ cat }}" role="status">{{ msg }}</p>{% endfor %}
+    {% endwith %}
+    {% block body %}{% endblock %}
+  </main>
+{% if g.user %}</div>{% endif %}
+</body>
+</html>

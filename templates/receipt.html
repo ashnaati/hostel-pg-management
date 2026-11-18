@@ -1,0 +1,22 @@
+{% extends "base.html" %}{% block title %}Receipt {{ p.receipt_no }}{% endblock %}
+{% block body %}
+<article class="receipt">
+  <h1>Rent receipt</h1>
+  <p class="receipt-no">{{ p.receipt_no }}</p>
+  <dl class="facts">
+    <div><dt>Received from</dt><dd>{{ p.resident_name }}</dd></div>
+    <div><dt>Room</dt><dd>{{ p.room_number }}</dd></div>
+    <div><dt>For</dt><dd>{{ p.month|month_label }}</dd></div>
+    <div><dt>Date</dt><dd>{{ p.paid_on|dmy }}</dd></div>
+    <div><dt>Mode</dt><dd>{{ p.mode }}</dd></div>
+  </dl>
+  <table>
+    <tr><td>Rent</td><td class="num">{{ p.rent|rupees }}</td></tr>
+    {% if p.late_fee %}<tr><td>Late fee</td><td class="num">{{ p.late_fee|rupees }}</td></tr>{% endif %}
+    <tr><td>Bill total</td><td class="num">{{ p.total|rupees }}</td></tr>
+    <tr class="strong"><td>Amount received</td><td class="num">{{ p.amount|rupees }}</td></tr>
+    <tr><td>Balance after this payment</td><td class="num">{{ p.balance|rupees }}</td></tr>
+  </table>
+  <p class="noprint actions"><button class="btn" data-print>Print receipt</button></p>
+</article>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}{% block title %}Room map{% endblock %}
+{% block body %}
+<div class="head"><h1>Room map</h1><a class="btn" href="{{ url_for('room_new') }}">Add room</a></div>
+<p class="muted">Each square is a bed: filled means occupied, outlined means vacant.</p>
+{% for block, items in blocks.items() %}
+<h2>{{ block }} block</h2>
+{% if items %}
+<div class="rooms">
+  {% for it in items %}
+  <article class="room {{ 'full' if it.free == 0 }}">
+    <header><strong>{{ it.room.number }}</strong><span class="muted">floor {{ it.room.floor }}{{ ', AC' if it.room.ac }}</span></header>
+    <div class="beds" role="img" aria-label="{{ it.room.occupied }} of {{ it.room.capacity }} beds occupied">
+      {% for i in range(it.room.capacity) %}<i class="bed {{ 'on' if i < it.room.occupied }}"></i>{% endfor %}
+    </div>
+    <ul class="plain">
+      {% for p in it.residents %}<li><a href="{{ url_for('resident_detail', rid=p.id) }}">{{ p.name }}</a></li>{% endfor %}
+      {% if it.free %}<li class="muted">{{ it.free }} bed{{ '' if it.free == 1 else 's' }} free</li>{% endif %}
+    </ul>
+    <footer>{{ it.room.rent|rupees }} per bed</footer>
+  </article>
+  {% endfor %}
+</div>
+{% else %}<p class="empty">No rooms in this block yet.</p>{% endif %}
+{% endfor %}
+{% endblock %}

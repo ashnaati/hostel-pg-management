@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% block title %}Notices{% endblock %}
+{% block body %}
+{% from "_macros.html" import csrf %}
+<h1>Notices</h1>
+<form method="post" class="stack narrow">
+  {{ csrf() }}
+  <label>Title <input name="title" value="{{ form.title }}" maxlength="120" required></label>
+  <label>Notice <textarea name="body" rows="3" maxlength="2000" required>{{ form.body }}</textarea></label>
+  <button class="btn">Post notice</button>
+</form>
+<h2>Posted</h2>
+{% for n in rows %}
+<article class="notice"><h3>{{ n.title }}</h3><p class="muted">{{ n.posted_on|dmy }}</p><p>{{ n.body }}</p></article>
+{% else %}<p class="empty">No notices yet. Residents see notices on their portal.</p>{% endfor %}
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends "base.html" %}{% block title %}Residents{% endblock %}
+{% block body %}
+<div class="head"><h1>Residents</h1><a class="btn" href="{{ url_for('resident_new') }}">Admit resident</a></div>
+<form method="get" class="inline-form filters">
+  <input type="search" name="q" value="{{ q }}" placeholder="Name, phone or room" aria-label="Search">
+  <select name="status" aria-label="Status">
+    <option value="active" {{ 'selected' if status == 'active' }}>Current</option>
+    <option value="left" {{ 'selected' if status == 'left' }}>Left</option>
+    <option value="all" {{ 'selected' if status == 'all' }}>All</option>
+  </select>
+  <button class="btn small">Search</button>
+</form>
+{% if rows %}
+<div class="scroll"><table>
+  <thead><tr><th>Name</th><th>Room</th><th>Phone</th><th>Joined</th><th class="num">Dues</th></tr></thead>
+  {% for r in rows %}
+  <tr><td><a href="{{ url_for('resident_detail', rid=r.id) }}">{{ r.name }}</a></td>
+      <td>{{ r.room_number or 'Left ' ~ (r.left_on|dmy) }}</td><td>{{ r.phone }}</td><td>{{ r.joined_on|dmy }}</td>
+      <td class="num">{% if r.due > 0 %}<span class="due">{{ r.due|rupees }}</span>{% else %}-{% endif %}</td></tr>
+  {% endfor %}
+</table></div>
+{% else %}<p class="empty">No residents match. <a href="{{ url_for('resident_new') }}">Admit the first one.</a></p>{% endif %}
+{% endblock %}

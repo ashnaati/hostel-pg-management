@@ -1,0 +1,29 @@
+{% extends "base.html" %}{% block title %}Rent bills{% endblock %}
+{% block body %}
+{% from "_macros.html" import csrf, owed %}
+<div class="head"><h1>Rent bills</h1></div>
+<div class="toolbar">
+  <form method="get" class="inline-form">
+    <input type="month" name="month" value="{{ month }}" aria-label="Month" required>
+    <label class="check"><input type="checkbox" name="unpaid" value="1" {{ 'checked' if unpaid }}> Unpaid only</label>
+    <button class="btn small">Show</button>
+  </form>
+  <form method="post" action="{{ url_for('bills_generate') }}" class="inline-form">
+    {{ csrf() }}<input type="hidden" name="month" value="{{ month }}">
+    <button class="btn small">Generate bills for {{ month|month_label }}</button>
+  </form>
+  <a class="btn small ghost" href="{{ url_for('bills_export', month=month) }}">Download CSV</a>
+</div>
+{% if rows %}
+<div class="scroll"><table>
+  <thead><tr><th>Resident</th><th>Room</th><th class="num">Rent</th><th class="num">Late fee</th><th class="num">Paid</th><th>Due on</th><th class="num">Balance</th></tr></thead>
+  {% for b in rows %}
+  <tr><td><a href="{{ url_for('resident_detail', rid=b.resident_id) }}">{{ b.resident_name }}</a></td><td>{{ b.room_number }}</td>
+      <td class="num">{{ b.rent|rupees }}</td><td class="num">{{ b.late_fee|rupees if b.late_fee else '-' }}</td>
+      <td class="num">{{ b.paid|rupees }}</td><td>{{ b.due_on|dmy }}</td><td class="num">{{ owed(b.balance) }}</td></tr>
+  {% endfor %}
+  <tfoot><tr><td colspan="2">Total</td><td colspan="3" class="num">{{ total|rupees }} billed</td><td></td><td class="num">{{ balance|rupees }}</td></tr></tfoot>
+</table></div>
+{% else %}<p class="empty">{{ 'No unpaid bills for ' if unpaid else 'No bills for ' }}{{ month|month_label }}.
+  {% if not unpaid %}Use the button above to generate them.{% endif %}</p>{% endif %}
+{% endblock %}

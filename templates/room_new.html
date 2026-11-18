@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% block title %}Add room{% endblock %}
+{% block body %}
+{% from "_macros.html" import csrf %}
+<h1>Add room</h1>
+<form method="post" class="stack narrow">
+  {{ csrf() }}
+  <label>Room number <input name="number" value="{{ form.number }}" maxlength="10" required></label>
+  <label>Block <select name="block"><option>Boys</option><option {{ 'selected' if form.block == 'Girls' }}>Girls</option></select></label>
+  <label>Floor <input type="number" name="floor" min="0" max="20" value="{{ form.floor or 0 }}" required></label>
+  <label>Beds (1 to 4) <input type="number" name="capacity" min="1" max="4" value="{{ form.capacity or 2 }}" required></label>
+  <label>Rent per bed per month (₹) <input type="number" name="rent" min="1" value="{{ form.rent }}" required></label>
+  <label class="check"><input type="checkbox" name="ac" value="1" {{ 'checked' if form.ac }}> Air-conditioned</label>
+  <button class="btn">Save room</button>
+</form>
+{% endblock %}

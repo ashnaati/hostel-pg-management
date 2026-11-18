@@ -1,0 +1,48 @@
+{% extends "base.html" %}{% block title %}My room{% endblock %}
+{% block body %}
+{% from "_macros.html" import csrf, badge, owed %}
+<h1>Hello, {{ r.name.split()[0] }}</h1>
+<dl class="facts">
+  <div><dt>Room</dt><dd>{{ r.room_number }} ({{ r.block }} block)</dd></div>
+  <div><dt>Rent</dt><dd>{{ r.room_rent|rupees }} per month</dd></div>
+  <div><dt>Joined</dt><dd>{{ r.joined_on|dmy }}</dd></div>
+  <div><dt>Deposit</dt><dd>{{ r.deposit|rupees }}</dd></div>
+  <div><dt>Roommates</dt><dd>{% for m in mates %}{{ m.name }}{{ ', ' if not loop.last }}{% else %}You have the room to yourself{% endfor %}</dd></div>
+</dl>
+
+<h2>My bills</h2>
+{% if invoices %}
+<div class="scroll"><table>
+  <thead><tr><th>Month</th><th class="num">Rent</th><th class="num">Late fee</th><th class="num">Paid</th><th>Due on</th><th class="num">Balance</th></tr></thead>
+  {% for i in invoices %}
+  <tr><td>{{ i.month|month_label }}</td><td class="num">{{ i.rent|rupees }}</td><td class="num">{{ i.late_fee|rupees if i.late_fee else '-' }}</td>
+      <td class="num">{{ i.paid|rupees }}</td><td>{{ i.due_on|dmy }}</td><td class="num">{{ owed(i.balance) }}</td></tr>
+  {% endfor %}
+</table></div>
+<p class="muted">Pay the warden in person; they will record it and your receipt appears below.</p>
+{% else %}<p class="empty">No bills yet.</p>{% endif %}
+
+<h2>My receipts</h2>
+{% for p in payments %}
+<p><a href="{{ url_for('receipt', pid=p.id) }}">{{ p.receipt_no }}</a>: {{ p.amount|rupees }} for {{ p.month|month_label }} on {{ p.paid_on|dmy }}</p>
+{% else %}<p class="empty">No receipts yet.</p>{% endfor %}
+
+<h2>Notices</h2>
+{% for n in notices %}<article class="notice"><h3>{{ n.title }}</h3><p class="muted">{{ n.posted_on|dmy }}</p><p>{{ n.body }}</p></article>
+{% else %}<p class="empty">No notices.</p>{% endfor %}
+
+<h2 id="complaints">Complaints</h2>
+<form method="post" action="{{ url_for('portal_complaint') }}" class="stack narrow">
+  {{ csrf() }}
+  <label>Category <select name="category">{% for c in categories %}<option {{ 'selected' if form.category == c }}>{{ c }}</option>{% endfor %}</select></label>
+  <label>What is wrong? <textarea name="description" rows="3" maxlength="1000" required>{{ form.description }}</textarea></label>
+  <button class="btn">Send to warden</button>
+</form>
+{% for c in complaints %}
+<article class="complaint">
+  <header><strong>{{ c.category }}</strong> {{ badge(c.status) }} <span class="muted">{{ c.created_on|dmy }}</span></header>
+  <p>{{ c.description }}</p>
+  {% if c.remark %}<p><em>Warden:</em> {{ c.remark }}</p>{% endif %}
+</article>
+{% endfor %}
+{% endblock %}

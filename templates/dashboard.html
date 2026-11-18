@@ -1,0 +1,44 @@
+{% extends "base.html" %}{% block title %}Dashboard{% endblock %}
+{% block body %}
+{% from "_macros.html" import badge %}
+<h1>Dashboard</h1>
+<p class="muted">{{ today().strftime('%A, %d %B %Y') }}</p>
+
+<section class="stats">
+  <div class="stat"><strong>{{ stats.occupancy }}%</strong>
+    <span>{{ stats.occupied }} of {{ stats.beds }} beds occupied, {{ stats.vacant }} free</span>
+    <div class="meter" role="img" aria-label="{{ stats.occupancy }} percent occupied"><i class="w{{ (stats.occupancy // 5) * 5 }}"></i></div></div>
+  <div class="stat"><strong>{{ stats.collected|rupees }}</strong><span>collected in {{ today().strftime('%B') }}</span></div>
+  <div class="stat warn"><strong>{{ stats.pending|rupees }}</strong><span>pending across {{ stats.pending_bills }} bill{{ '' if stats.pending_bills == 1 else 's' }}</span></div>
+  <div class="stat"><strong>{{ stats.open_complaints }}</strong><span>open complaint{{ '' if stats.open_complaints == 1 else 's' }}</span></div>
+</section>
+
+<div class="two">
+  <section>
+    <h2>Overdue rent</h2>
+    {% if overdue %}
+    <table>
+      <thead><tr><th>Resident</th><th>Room</th><th>Month</th><th>Due</th><th class="num">Balance</th></tr></thead>
+      {% for b in overdue %}
+      <tr><td><a href="{{ url_for('resident_detail', rid=b.resident_id) }}">{{ b.resident_name }}</a></td>
+          <td>{{ b.room_number }}</td><td>{{ b.month|month_label }}</td><td>{{ b.due_on|dmy }}</td>
+          <td class="num due">{{ b.balance|rupees }}</td></tr>
+      {% endfor %}
+    </table>
+    <p><a href="{{ url_for('bills', unpaid=1) }}">See all unpaid bills</a></p>
+    {% else %}<p class="empty">No overdue rent. Generate this month's bills from <a href="{{ url_for('bills') }}">Rent bills</a>.</p>{% endif %}
+  </section>
+  <section>
+    <h2>Open complaints</h2>
+    {% if complaints %}
+    <ul class="plain">
+      {% for c in complaints %}
+      <li><strong>{{ c.category }}</strong>, room {{ c.room_number or '-' }} {{ badge(c.status) }}<br>
+          <span class="muted">{{ c.resident_name }}: {{ c.description|truncate(90) }}</span></li>
+      {% endfor %}
+    </ul>
+    <p><a href="{{ url_for('complaints') }}">Manage complaints</a></p>
+    {% else %}<p class="empty">Nothing open.</p>{% endif %}
+  </section>
+</div>
+{% endblock %}

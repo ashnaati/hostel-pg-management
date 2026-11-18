@@ -1,0 +1,14 @@
+{% extends "base.html" %}{% block title %}Log in{% endblock %}
+{% block body %}
+{% from "_macros.html" import csrf %}
+<section class="login">
+  <h1>Hostel &amp; PG Manager</h1>
+  <p class="muted">Wardens manage rooms, rent and complaints. Residents check their dues and raise complaints.</p>
+  <form method="post" class="stack">
+    {{ csrf() }}
+    <label>Email <input type="email" name="email" autocomplete="username" required autofocus></label>
+    <label>Password <input type="password" name="password" autocomplete="current-password" required></label>
+    <button class="btn">Log in</button>
+  </form>
+</section>
+{% endblock %}

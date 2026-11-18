@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% block title %}{{ title }}{% endblock %}
+{% block body %}
+<h1>{{ title }}</h1>
+<p>{% if code == 403 %}Your account can't open this page.{% elif code == 404 %}That page or record doesn't exist.{% elif code == 400 %}The request was missing its security token. Go back, reload the page and try again.{% else %}Something about the request was wrong.{% endif %}</p>
+<p><a href="{{ url_for('index') }}">Back to the start</a></p>
+{% endblock %}
