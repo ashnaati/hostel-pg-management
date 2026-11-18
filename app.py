@@ -32,8 +32,11 @@ def create_app(config=None):
     if not app.config.get("SECRET_KEY"):     # Flask's default is None, so setdefault would not work
         app.config["SECRET_KEY"] = os.environ.get("HOSTEL_SECRET_KEY") or _persistent_key(app)
 
-    with hostel.connect(app.config["DATABASE"]) as boot:    # create tables on first run
+    boot = hostel.connect(app.config["DATABASE"])          # create tables on first run
+    try:
         hostel.init_db(boot)
+    finally:
+        boot.close()        # sqlite3's "with" does not close; an open file can't be deleted on Windows
 
     # ------------------------------------------------------------ helpers
     def today():
